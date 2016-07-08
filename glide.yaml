@@ -1,0 +1,12 @@
+package: github.com/bombela/yarpc-go-fun
+import:
+- package: github.com/thriftrw/thriftrw-go
+  subpackages:
+  - protocol
+  - wire
+- package: github.com/uber/tchannel-go
+- package: github.com/yarpc/yarpc-go
+  subpackages:
+  - encoding/thrift
+  - transport
+  - transport/tchannel
