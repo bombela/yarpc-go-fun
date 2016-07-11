@@ -3,13 +3,13 @@ package main
 import (
 	"crypto/rand"
 	"crypto/sha1"
+	"flag"
 	"fmt"
 	"log"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/bombela/yarpc-go-fun/broker"
 	"github.com/bombela/yarpc-go-fun/broker/yarpc/brokerserver"
 	"github.com/yarpc/yarpc-go"
 	"github.com/yarpc/yarpc-go/encoding/thrift"
@@ -251,22 +251,19 @@ loop:
 	return msgs, nil, ctx.Err()
 }
 
-func (b *brokerHandler) ActiveSubscription(reqMeta yarpc.ReqMeta,
-) ([]*broker.SubscribedTopic, yarpc.ResMeta, error) {
-	return nil, nil, fmt.Errorf("boo")
-}
-
 func main() {
+	bind := flag.String("bind", ":28923", "bind to this endpoint")
+	flag.Parse()
+
 	channel, err := tchannel.NewChannel("broker", nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	const port = ":28923"
 	rpc := yarpc.New(yarpc.Config{
 		Name: "broker",
 		Inbounds: []transport.Inbound{
-			ytch.NewInbound(channel, ytch.ListenAddr(port)),
+			ytch.NewInbound(channel, ytch.ListenAddr(*bind)),
 		},
 	})
 
@@ -277,7 +274,7 @@ func main() {
 		fmt.Println("error:", err.Error())
 	}
 
-	fmt.Println("Server listening on", port)
+	fmt.Println("Server listening on", *bind)
 
 	select {} // block forever
 }

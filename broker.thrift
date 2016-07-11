@@ -12,12 +12,15 @@ service Broker {
 	// A subscription expires automatically after 30s if not polled.
 	// max_msgs indicates the maximums number of msgs to return for this call at once.
 	list<string> poll(1: string key, 2: i32 maxMsgs)
-
-	// Currently active topics and subscriptions.
-	list<SubscribedTopic> activeSubscription()
 }
 
-struct SubscribedTopic {
-	1: required string topic
-	2: required i64    subscribers
+service LoadBalancer {
+	void add_backend(1: string endpoint)
+	void del_backend(1: string endpoint)
+	list<BackendStatus> backends()
+}
+
+struct BackendStatus {
+	1: required string endpoint
+	2: optional string status
 }

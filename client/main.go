@@ -19,6 +19,8 @@ import (
 )
 
 func main() {
+	b := flag.String("b", "localhost:28923", "broker endpoint")
+	lb := flag.Bool("lb", false, "set to true when talking to a load balancer broker")
 	topic := flag.String("topic", "", "topic to use")
 	flag.Parse()
 
@@ -26,15 +28,20 @@ func main() {
 		log.Fatal("Give me a -topic <topic>")
 	}
 
+	routingKey := "broker"
+	if *lb {
+		routingKey = "loadbalancer"
+	}
+
 	channel, err := tchannel.NewChannel("broker-client", nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	outbound := ytch.NewOutbound(channel, ytch.HostPort("localhost:28923"))
+	outbound := ytch.NewOutbound(channel, ytch.HostPort(*b))
 
 	rpc := yarpc.New(yarpc.Config{
 		Name:      "broker-client",
-		Outbounds: transport.Outbounds{"broker": outbound},
+		Outbounds: transport.Outbounds{routingKey: outbound},
 	})
 
 	if err := rpc.Start(); err != nil {
@@ -42,7 +49,7 @@ func main() {
 	}
 	defer rpc.Stop()
 
-	client := brokerclient.New(rpc.Channel("broker"))
+	client := brokerclient.New(rpc.Channel(routingKey))
 	rootCtx := context.Background()
 
 	fmt.Printf("# subscribing to topic %v\n", *topic)

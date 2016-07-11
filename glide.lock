@@ -1,5 +1,5 @@
 hash: 9b611f731eede8459384066c72621db323587487bf7e0b258b99f6e68f2e22ad
-updated: 2016-07-05T15:49:30.009312766-07:00
+updated: 2016-07-12T13:28:59.90127957-07:00
 imports:
 - name: github.com/davecgh/go-spew
   version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
@@ -25,14 +25,14 @@ imports:
 - name: github.com/uber-go/atomic
   version: e682c1008ac17bf26d2e4b5ad6cdd08520ed0b22
 - name: github.com/uber/tchannel-go
-  version: 995eddd1840f0d60de36a71ffb3a2d06e46c9489
+  version: f9e40ff1212a2542e21d8b55510079aabac0cf66
   subpackages:
   - relay
   - tnet
   - trand
   - typed
 - name: github.com/yarpc/yarpc-go
-  version: 8934bfbd98630639a03c7ba0b4abbfbcef15e660
+  version: 6d8b6f2b70c66f7ca3667086b24aa33b2e757ff0
   subpackages:
   - encoding/thrift
   - transport
@@ -49,7 +49,7 @@ imports:
   - internal/errors
   - transport/tchannel/internal
 - name: golang.org/x/net
-  version: b400c2eff1badec7022a8c8f5bea058b6315eed7
+  version: f841c39de738b1d0df95b5a7187744f0e03d8112
   subpackages:
   - context
   - context/ctxhttp

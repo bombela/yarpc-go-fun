@@ -9,72 +9,73 @@ import (
 	"strings"
 )
 
-type SubscribedTopic struct {
-	Topic       string `json:"topic"`
-	Subscribers int64  `json:"subscribers"`
+type BackendStatus struct {
+	Endpoint string  `json:"endpoint"`
+	Status   *string `json:"status,omitempty"`
 }
 
-func (v *SubscribedTopic) ToWire() (wire.Value, error) {
+func (v *BackendStatus) ToWire() (wire.Value, error) {
 	var (
 		fields [2]wire.Field
 		i      int = 0
 		w      wire.Value
 		err    error
 	)
-	w, err = wire.NewValueString(v.Topic), error(nil)
+	w, err = wire.NewValueString(v.Endpoint), error(nil)
 	if err != nil {
 		return w, err
 	}
 	fields[i] = wire.Field{ID: 1, Value: w}
 	i++
-	w, err = wire.NewValueI64(v.Subscribers), error(nil)
-	if err != nil {
-		return w, err
+	if v.Status != nil {
+		w, err = wire.NewValueString(*(v.Status)), error(nil)
+		if err != nil {
+			return w, err
+		}
+		fields[i] = wire.Field{ID: 2, Value: w}
+		i++
 	}
-	fields[i] = wire.Field{ID: 2, Value: w}
-	i++
 	return wire.NewValueStruct(wire.Struct{Fields: fields[:i]}), nil
 }
 
-func (v *SubscribedTopic) FromWire(w wire.Value) error {
+func (v *BackendStatus) FromWire(w wire.Value) error {
 	var err error
-	topicIsSet := false
-	subscribersIsSet := false
+	endpointIsSet := false
 	for _, field := range w.GetStruct().Fields {
 		switch field.ID {
 		case 1:
 			if field.Value.Type() == wire.TBinary {
-				v.Topic, err = field.Value.GetString(), error(nil)
+				v.Endpoint, err = field.Value.GetString(), error(nil)
 				if err != nil {
 					return err
 				}
-				topicIsSet = true
+				endpointIsSet = true
 			}
 		case 2:
-			if field.Value.Type() == wire.TI64 {
-				v.Subscribers, err = field.Value.GetI64(), error(nil)
+			if field.Value.Type() == wire.TBinary {
+				var x string
+				x, err = field.Value.GetString(), error(nil)
+				v.Status = &x
 				if err != nil {
 					return err
 				}
-				subscribersIsSet = true
 			}
 		}
 	}
-	if !topicIsSet {
-		return errors.New("field Topic of SubscribedTopic is required")
-	}
-	if !subscribersIsSet {
-		return errors.New("field Subscribers of SubscribedTopic is required")
+	if !endpointIsSet {
+		return errors.New("field Endpoint of BackendStatus is required")
 	}
 	return nil
 }
 
-func (v *SubscribedTopic) String() string {
+func (v *BackendStatus) String() string {
 	var fields [2]string
 	i := 0
-	fields[i] = fmt.Sprintf("Topic: %v", v.Topic)
+	fields[i] = fmt.Sprintf("Endpoint: %v", v.Endpoint)
 	i++
-	fields[i] = fmt.Sprintf("Subscribers: %v", v.Subscribers)
-	i++
-	return fmt.Sprintf("SubscribedTopic{%v}", strings.Join(fields[:i], ", "))
+	if v.Status != nil {
+		fields[i] = fmt.Sprintf("Status: %v", *(v.Status))
+		i++
+	}
+	return fmt.Sprintf("BackendStatus{%v}", strings.Join(fields[:i], ", "))
 }
