@@ -31,6 +31,8 @@ func genSubscriberKey() string {
 }
 
 type subscription struct {
+	key string
+
 	// a buffer for incoming message to the subscriber.
 	buffer chan string
 
@@ -43,8 +45,9 @@ type subscription struct {
 	lastActiveTs int64
 }
 
-func newActiveSubscription() *subscription {
+func newActiveSubscription(key string) *subscription {
 	s := subscription{
+		key:    key,
 		buffer: make(chan string, 16),
 	}
 	return &s
@@ -52,13 +55,14 @@ func newActiveSubscription() *subscription {
 
 func (s *subscription) isActive(at int64) bool {
 	if atomic.LoadUint32(&s.active) > 0 {
-		log.Printf("s? currently active")
+		log.Printf("%v is active", s.key)
 		return true
 	}
 	if at-atomic.LoadInt64(&s.lastActiveTs) < 10 {
-		log.Printf("s? currently still fresh %v", at-atomic.LoadInt64(&s.lastActiveTs))
+		log.Printf("%v was recently active %v", s.key, at-atomic.LoadInt64(&s.lastActiveTs))
 		return true
 	}
+	log.Printf("%v is expired", s.key)
 	return false
 }
 
@@ -114,12 +118,10 @@ func newTopic(b *brokerHandler, topic string) *activeTopic {
 
 func (t *activeTopic) isAnyActiveSubcribers() bool {
 	now := time.Now().Unix()
-	for skey, s := range t.activeSubscriptions {
+	for _, s := range t.activeSubscriptions {
 		if s.isActive(now) {
-			log.Printf("s %v active", skey)
 			return true
 		}
-		log.Printf("s %v kapout", skey)
 	}
 	return false
 }
@@ -189,7 +191,7 @@ func (b *brokerHandler) Subscribe(reqMeta yarpc.ReqMeta,
 	topic *string) (string, yarpc.ResMeta, error) {
 
 	skey := genSubscriberKey()
-	s := newActiveSubscription()
+	s := newActiveSubscription(skey)
 	log.Printf("subscribing on %v (%v)", *topic, skey)
 
 	b.Lock()
@@ -245,7 +247,7 @@ loop:
 	atomic.StoreUint32(&s.active, 0)
 
 	t, ok := ctx.Deadline()
-	log.Printf("context deadline: %v, %v", t, ok)
+	log.Printf("%v ctx deadline: (%v, %v)", s.key, t, ok)
 	return msgs, nil, ctx.Err()
 }
 
